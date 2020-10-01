@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -114,6 +115,14 @@ public class MainActivity extends AppCompatActivity {
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         private static final String DEBUG_TAG = "Gestures";
+        @Override
+        public boolean onDown(MotionEvent event) {
+            if (event.getX() < 350 && event.getY() < 1411 & event.getY() > 390)
+                imageLeft();
+            if (event.getX() > 774 && event.getY() < 1411 & event.getY() > 390)
+                imageRight();
+            return true;
+        }
         @Override
         public boolean onFling(MotionEvent event1, MotionEvent event2,
                                float velocityX, float velocityY) {
