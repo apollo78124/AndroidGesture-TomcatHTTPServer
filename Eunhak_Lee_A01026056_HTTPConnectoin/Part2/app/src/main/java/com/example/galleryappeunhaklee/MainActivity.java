@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     DownloadWebPageTask task = new DownloadWebPageTask();
-                    task.execute(new String[] { "https://www.bcit.ca" });
+                    task.execute(new String[] { storageDir + "/" + imageList[currentPicPosition] });
                 }
             });
 
@@ -159,20 +160,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... urls) {
             String response = "";
-            //for (String url : urls) {
-
-            //String host = "www.google.com"
+            String fileName = urls[0];
             BufferedReader br = null;
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
             try {
-                //URL url = new URL("http://10.0.2.2:8080/midp/hits");
-                URL url = new URL("http://192.168.1.75:8080/midp/hits");
+                URL url = new URL("http://10.0.2.2:8080/midp/hits");
+                //URL url = new URL("http://192.168.1.67:8080/midp/hits");
                 //URL url = new URL(urls[0]);
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("GET");
+                urlConnection.setRequestMethod("PUT");
                 urlConnection.connect();
 
                 // Read the input stream into a String
