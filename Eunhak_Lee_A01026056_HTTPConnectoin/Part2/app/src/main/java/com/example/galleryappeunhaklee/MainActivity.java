@@ -3,11 +3,16 @@ package com.example.galleryappeunhaklee;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
 
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -23,15 +28,15 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Random;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView imageView1;
-    private Button buttonLeft,buttonRight, buttonUpload, buttonRetreive;
+    private Button buttonLeft,buttonRight, buttonUpload, buttonRetreive, buttonSave;
     private File storageDir;
     private String[] imageList;
     private int currentPicPosition;
@@ -88,6 +93,15 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     RetreiveImageTask task = new RetreiveImageTask();
+                    task.execute(new String[] {String.valueOf(storageDir), imageList[currentPicPosition] });
+                }
+            });
+
+            buttonSave =(Button) findViewById(R.id.buttonSave);
+            buttonSave.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SaveTask task = new SaveTask();
                     task.execute(new String[] {String.valueOf(storageDir), imageList[currentPicPosition] });
                 }
             });
@@ -309,6 +323,85 @@ public class MainActivity extends AppCompatActivity {
             String generatedString = buffer.toString();
 
             return generatedString;
+        }
+    }
+
+    private class SaveTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            String response = "";
+            String storageDirectory = urls[0];
+            String fileName = urls[1];
+            Log.e(null, "Save Task");
+            try {
+                FeedReaderDbHelper dbHelper = new FeedReaderDbHelper(getApplicationContext());
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                String title = fileName;
+                InputStream inputStream = new FileInputStream(storageDir + "/" + fileName);
+                Scanner s = new Scanner(inputStream).useDelimiter("\\A");
+                String result = s.hasNext() ? s.next() : "";
+                String content = result;
+                // Create a new map of values, where column names are the keys
+                ContentValues values = new ContentValues();
+                values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE, title);
+                values.put(FeedReaderContract.FeedEntry.COLUMN_NAME_CONTENT, content);
+                s.close();
+                inputStream.close();
+                // Insert the new row, returning the primary key value of the new row
+                long newRowId = db.insert(FeedReaderContract.FeedEntry.TABLE_NAME, null, values);
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            textView.setText("Image Saved");
+        }
+    }
+
+    private final class FeedReaderContract {
+        // To prevent someone from accidentally instantiating the contract class,
+        // make the constructor private.
+        private FeedReaderContract() {}
+        private static final String SQL_CREATE_ENTRIES =
+                "CREATE TABLE " + FeedEntry.TABLE_NAME + " (" +
+                        FeedEntry._ID + " INTEGER PRIMARY KEY," +
+                        FeedEntry.COLUMN_NAME_TITLE + " TEXT," +
+                        FeedEntry.COLUMN_NAME_CONTENT + " TEXT)";
+
+        private static final String SQL_DELETE_ENTRIES =
+                "DROP TABLE IF EXISTS " + FeedEntry.TABLE_NAME;
+        /* Inner class that defines the table contents */
+        public class FeedEntry implements BaseColumns {
+            public static final String TABLE_NAME = "ImagesSave";
+            public static final String COLUMN_NAME_TITLE = "ImageFileName";
+            public static final String COLUMN_NAME_CONTENT = "BinData";
+        }
+    }
+
+    public class FeedReaderDbHelper extends SQLiteOpenHelper {
+        // If you change the database schema, you must increment the database version.
+        public static final int DATABASE_VERSION = 1;
+        public static final String DATABASE_NAME = "ImageSave.db";
+
+        public FeedReaderDbHelper(Context context) {
+            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        }
+        public void onCreate(SQLiteDatabase db) {
+            db.execSQL(FeedReaderContract.SQL_CREATE_ENTRIES);
+
+        }
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            // This database is only a cache for online data, so its upgrade policy is
+            // to simply to discard the data and start over
+            db.execSQL(FeedReaderContract.SQL_DELETE_ENTRIES);
+            onCreate(db);
+        }
+        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            onUpgrade(db, oldVersion, newVersion);
         }
     }
 }
