@@ -190,7 +190,6 @@ public class MainActivity extends AppCompatActivity {
                 conn.setRequestProperty("Connection", "Keep-Alive");
                 conn.connect();
                 DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
-                OutputStream outputStream1 = conn.getOutputStream();
                 // create a buffer of maximum size
                 int bytesAvailable = fileInputStream.available();
                 int maxBufferSize = 1024;
