@@ -14,3 +14,9 @@ If you don't have any images, use the images inside the SampleImages folder in t
 
 - When testing part B, please populate the %tomcat%/bin/WebContents/images/ directory with the 8b52.jpg file given in the SampleImages folder in this package. 
 
+- For Part C, each save takes about 15 seconds. Give it a time until you save the next picture. 
+
+Part A - Completed
+Part B - Completed
+Part C - Completed
+
