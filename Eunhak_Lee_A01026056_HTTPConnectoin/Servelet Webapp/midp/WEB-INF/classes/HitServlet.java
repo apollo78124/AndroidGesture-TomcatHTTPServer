@@ -29,12 +29,32 @@ public class HitServlet extends HttpServlet {
   public void doGet(HttpServletRequest request,
       HttpServletResponse response)
       throws ServletException, IOException {
-    String message = "Hits: " + ++mCount;
+		ServletContext sc = getServletContext();
 
-    response.setContentType("text/plain");
-    response.setContentLength(message.length());
-    PrintWriter out = response.getWriter();
-    out.println(message);
+        try {
+			InputStream is = new FileInputStream("./WebContents/images/8b52.jpg");
+            // it is the responsibility of the container to close output stream
+            OutputStream os = response.getOutputStream();
+
+            if (is == null) {
+
+                response.setContentType("text/plain");
+                os.write("Failed to send image".getBytes());
+            } else {
+
+                response.setContentType("image/jpg");
+
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+
+                while ((bytesRead = is.read(buffer)) != -1) {
+
+                    os.write(buffer, 0, bytesRead);
+                }
+            }
+        } catch (Exception e) {
+			System.out.println("Error: " + e);
+		}
   }
   
   @Override
@@ -42,18 +62,16 @@ public class HitServlet extends HttpServlet {
           throws ServletException, IOException {
 	  System.out.println("doPut Method");
 	  try {
-		/**
 		String dir = "./WebContents/images/";
 
         File file = new File(dir);
 
         // true if the directory was created, false otherwise
         if (file.mkdirs()) {
-            System.out.println("Directory is created!");
+            System.out.println("%tomcat&/bin/WebContents/images/ Directory is created to save files.");
         } else {
-            System.out.println("Failed to create directory!");
+            System.out.println("%tomcat&/bin/WebContents/images/ Directory already exists. ");
 		}
-		 */
 		InputStream inputStream =  req.getInputStream();
 		
 		String body = inputStreamSave(inputStream);

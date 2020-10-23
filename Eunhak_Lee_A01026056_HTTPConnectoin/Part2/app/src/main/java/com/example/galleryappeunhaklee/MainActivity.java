@@ -1,47 +1,37 @@
 package com.example.galleryappeunhaklee;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.core.view.GestureDetectorCompat;
-import androidx.core.view.MotionEventCompat;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView imageView1;
-    private Button buttonLeft,buttonRight, buttonUpload;
+    private Button buttonLeft,buttonRight, buttonUpload, buttonRetreive;
     private File storageDir;
     private String[] imageList;
     private int currentPicPosition;
@@ -89,7 +79,15 @@ public class MainActivity extends AppCompatActivity {
             buttonUpload.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    DownloadWebPageTask task = new DownloadWebPageTask();
+                    UploadImageTask task = new UploadImageTask();
+                    task.execute(new String[] {String.valueOf(storageDir), imageList[currentPicPosition] });
+                }
+            });
+            buttonRetreive =(Button) findViewById(R.id.buttonRetrieve);
+            buttonRetreive.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    RetreiveImageTask task = new RetreiveImageTask();
                     task.execute(new String[] {String.valueOf(storageDir), imageList[currentPicPosition] });
                 }
             });
@@ -161,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class DownloadWebPageTask extends AsyncTask<String, Void, String> {
+    private class UploadImageTask extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
             String response = "";
@@ -239,6 +237,78 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             textView.setText(result);
+        }
+    }
+
+    private class RetreiveImageTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            String response = "";
+            //for (String url : urls) {
+
+            //String host = "www.google.com"
+            BufferedReader br = null;
+
+            HttpURLConnection urlConnection = null;
+            BufferedReader reader = null;
+            try {
+                URL url = new URL("http://10.0.2.2:8080/midp/hits");
+                //URL url = new URL("http://192.168.1.67:8080/midp/hits");
+                //URL url = new URL(urls[0]);
+                // Create the request to OpenWeatherMap, and open the connection
+                urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+
+                // Read the input stream into a String
+                InputStream input = urlConnection.getInputStream();
+                byte[] buf = new byte[1024];
+                int bytesRead;
+                String fileName = fileNameGeneration() + ".jpg";
+                OutputStream output = new FileOutputStream(storageDir + "/" + fileName);
+                while ((bytesRead = input.read(buf)) > 0) {
+                    output.write(buf, 0, bytesRead);
+                }
+                Log.e(null, "File Downloaded");
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally{
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
+                if (reader != null) {
+                    try {
+                        br.close();
+                    } catch (final IOException e) {
+                        Log.e("PlaceholderFragment", "Error closing stream", e);
+                    }
+                }
+            }
+            //}
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+
+            imageList = storageDir.list();
+            textView.setText("Image downloaded");
+        }
+
+        private String fileNameGeneration() {
+            int leftLimit = 97; // letter 'a'
+            int rightLimit = 122; // letter 'z'
+            int targetStringLength = 10;
+            Random random = new Random();
+            StringBuilder buffer = new StringBuilder(targetStringLength);
+            for (int i = 0; i < targetStringLength; i++) {
+                int randomLimitedInt = leftLimit + (int)
+                        (random.nextFloat() * (rightLimit - leftLimit + 1));
+                buffer.append((char) randomLimitedInt);
+            }
+            String generatedString = buffer.toString();
+
+            return generatedString;
         }
     }
 }
