@@ -23,11 +23,16 @@ import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -85,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     DownloadWebPageTask task = new DownloadWebPageTask();
-                    task.execute(new String[] { storageDir + "/" + imageList[currentPicPosition] });
+                    task.execute(new String[] {String.valueOf(storageDir), imageList[currentPicPosition] });
                 }
             });
 
@@ -160,8 +165,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... urls) {
             String response = "";
-            String fileName = urls[0];
+            String storageDirectory = urls[0];
+            String fileName = urls[1];
             BufferedReader br = null;
+            String exsistingFileName = urls[1];
+
+            String lineEnd = "\r\n";
+            String twoHyphens = "--";
+            String boundary = "*****";
 
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
@@ -169,49 +180,60 @@ public class MainActivity extends AppCompatActivity {
                 URL url = new URL("http://10.0.2.2:8080/midp/hits");
                 //URL url = new URL("http://192.168.1.67:8080/midp/hits");
                 //URL url = new URL(urls[0]);
+                FileInputStream  fileInputStream = new FileInputStream(storageDirectory + "/" + fileName);
                 // Create the request to OpenWeatherMap, and open the connection
-                urlConnection = (HttpURLConnection) url.openConnection();
-                urlConnection.setRequestMethod("PUT");
-                urlConnection.connect();
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("PUT");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
 
-                // Read the input stream into a String
-                InputStream inputStream = urlConnection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if (inputStream == null) {
-                    // Nothing to do.
-                    return null;
+                conn.setRequestProperty("Connection", "Keep-Alive");
+                conn.connect();
+                DataOutputStream dos = new DataOutputStream(conn.getOutputStream());
+                OutputStream outputStream1 = conn.getOutputStream();
+                // create a buffer of maximum size
+                int bytesAvailable = fileInputStream.available();
+                int maxBufferSize = 1024;
+                int bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                byte[] buffer = new byte[bufferSize];
+
+                // read file and write it into form...
+//                dos.writeBytes(fileName);
+                int bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+                while (bytesRead > 0) {
+                    dos.write(buffer, 0, bufferSize);
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
                 }
-                br = new BufferedReader(new InputStreamReader(inputStream));
 
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    // Since it's JSON, adding a newline isn't necessary (it won't affect parsing)
-                    // But it does make debugging a *lot* easier if you print out the completed
-                    // buffer for debugging.
-                    response += line;
+                // close streams
+                Log.e(null, "File is written");
+                fileInputStream.close();
+                dos.flush();
+
+                InputStream is = conn.getInputStream();
+                // retrieve the response from server
+                int ch;
+
+                StringBuffer b = new StringBuffer();
+                while ((ch = is.read()) != -1) {
+                    b.append((char) ch);
                 }
+                String s = b.toString();
+                response = b.toString();
+//                Log.i("Response", s);
+                dos.close();
 
-                if (response.length() == 0) {
-                    // Stream was empty.  No point in parsing.
-                    return null;
-                }
-
-                br.close();
             } catch (Exception e) {
                 e.printStackTrace();
             } finally{
                 if (urlConnection != null) {
                     urlConnection.disconnect();
                 }
-                if (reader != null) {
-                    try {
-                        br.close();
-                    } catch (final IOException e) {
-                        Log.e("PlaceholderFragment", "Error closing stream", e);
-                    }
-                }
+
             }
-            //}
             return response;
         }
 
