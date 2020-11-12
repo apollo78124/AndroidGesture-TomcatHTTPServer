@@ -28,7 +28,7 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView imageView1;
-    private Button buttonLeft,buttonRight;
+    private Button buttonLeft,buttonRight, buttonSearch;
     private File storageDir;
     private String[] imageList;
     private int currentPicPosition;
@@ -68,6 +68,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 imageRight();
+            }
+        });
+
+        buttonSearch =(Button) findViewById(R.id.searchButton);
+        buttonSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchActivity();
             }
         });
 
@@ -134,5 +142,10 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         }
+    }
+
+    public void searchActivity() {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
     }
 }
