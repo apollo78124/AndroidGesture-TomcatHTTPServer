@@ -78,8 +78,7 @@ public class MainActivity extends AppCompatActivity {
                 searchActivity();
             }
         });
-
-            mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+        mDetector = new GestureDetectorCompat(this, new MyGestureListener());
     }
 
     private void imageLeft() {
