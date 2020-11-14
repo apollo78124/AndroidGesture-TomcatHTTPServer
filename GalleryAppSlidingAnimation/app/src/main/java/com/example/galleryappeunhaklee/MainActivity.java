@@ -1,30 +1,21 @@
 package com.example.galleryappeunhaklee;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.core.view.GestureDetectorCompat;
-import androidx.core.view.MotionEventCompat;
 
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView imageView1;
@@ -34,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentPicPosition;
     private File imgFile;
     private GestureDetectorCompat mDetector;
+    Animation sliderRight, sliderLeft;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +63,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-            mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+        mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+        sliderRight = AnimationUtils.loadAnimation(this, R.anim.slideright);
+        sliderLeft = AnimationUtils.loadAnimation(this, R.anim.slideleft);
     }
 
     private void imageLeft() {
@@ -80,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             currentPicPosition--;
         }
-
+        sliderLeft.reset();
+        imageView1.startAnimation(sliderLeft);
         imgFile = new  File(storageDir + "/" + imageList[currentPicPosition]);
         if(imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
@@ -94,7 +89,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             currentPicPosition++;
         }
-
+        sliderRight.reset();
+        imageView1.startAnimation(sliderRight);
         imgFile = new  File(storageDir + "/" + imageList[currentPicPosition]);
         if(imgFile.exists()) {
             Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
