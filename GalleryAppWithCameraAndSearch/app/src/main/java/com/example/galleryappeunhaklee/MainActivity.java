@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
+import android.widget.TabHost;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,7 +30,7 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView imageView1;
-    private Button buttonLeft,buttonRight, buttonSearch, buttonCamera;
+    private Button buttonLeft,buttonRight, buttonSearch, buttonCamera, buttonTab;
     private File storageDir;
     private String[] imageList;
     private int currentPicPosition;
@@ -89,7 +90,15 @@ public class MainActivity extends AppCompatActivity {
                 dispatchTakePictureIntent();
             }
         });
+        buttonTab =(Button) findViewById(R.id.tabButton);
+        buttonTab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                tabActivity();
+            }
+        });
         mDetector = new GestureDetectorCompat(this, new MyGestureListener());
+
     }
 
     private void imageLeft() {
@@ -156,6 +165,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void searchActivity() {
         Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
+    }
+
+    public void tabActivity() {
+        Intent intent = new Intent(this, TabActivity.class);
         startActivity(intent);
     }
 
